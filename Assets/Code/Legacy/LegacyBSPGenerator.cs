@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class BSPGenerator : MonoBehaviour {
+public class LegacyBSPGenerator : MonoBehaviour {
 
     //Enums
     public enum MapGenerationMode
@@ -32,15 +32,15 @@ public class BSPGenerator : MonoBehaviour {
     public float roomPercentage;
     [Header("Width of the corridors")]
     public float corridorWidth = 2f;
-    private List<Room> mainRooms;
-    private List<Room> allRooms;
-    private List<Room> roomsConected;
+    private List<LegacyRoom> mainRooms;
+    private List<LegacyRoom> allRooms;
+    private List<LegacyRoom> roomsConected;
     [Header("See map representation on editor")]
     public bool gizmosActive = false;
 
 	// Use this for initialization
 	void Start () {
-        mainRooms = new List<Room>();
+        mainRooms = new List<LegacyRoom>();
         floor.transform.localScale *= tileSize;
         // Check if we're going to cut the map horizontal or vertically. 
         bool horizontalCut = Random.Range(0, 100) < 50;
@@ -49,9 +49,9 @@ public class BSPGenerator : MonoBehaviour {
         if (horizontalCut)
         {
             sizeFirstRoom = Random.Range(mapSize.y * 0.4f, mapSize.y * 0.6f);
-            Room room = new Room(new Vector3(0, 0, 0), new Vector3(mapSize.x, generationMode == MapGenerationMode.TwoD ? sizeFirstRoom : 0, generationMode == MapGenerationMode.ThreeD ? sizeFirstRoom : 0),firstRoomDivision, roomPercentage, "0");
+            LegacyRoom room = new LegacyRoom(new Vector3(0, 0, 0), new Vector3(mapSize.x, generationMode == MapGenerationMode.TwoD ? sizeFirstRoom : 0, generationMode == MapGenerationMode.ThreeD ? sizeFirstRoom : 0),firstRoomDivision, roomPercentage, "0");
             mainRooms.Add(room);
-            room = new Room(new Vector3(0, generationMode == MapGenerationMode.TwoD ? sizeFirstRoom : 0, generationMode == MapGenerationMode.ThreeD ? sizeFirstRoom : 0),
+            room = new LegacyRoom(new Vector3(0, generationMode == MapGenerationMode.TwoD ? sizeFirstRoom : 0, generationMode == MapGenerationMode.ThreeD ? sizeFirstRoom : 0),
                 new Vector3(mapSize.x, generationMode == MapGenerationMode.TwoD ? mapSize.y - sizeFirstRoom : 0, generationMode == MapGenerationMode.ThreeD ? mapSize.y - sizeFirstRoom : 0), roomNumber - firstRoomDivision, roomPercentage, "1");
             mainRooms.Add(room);
 
@@ -59,9 +59,9 @@ public class BSPGenerator : MonoBehaviour {
         else
         {
             sizeFirstRoom = Random.Range(mapSize.x * 0.4f, mapSize.x * 0.6f);
-            Room room = new Room(new Vector3(0, 0, 0), new Vector3(sizeFirstRoom, generationMode == MapGenerationMode.TwoD ? mapSize.y : 0, generationMode == MapGenerationMode.ThreeD ? mapSize.y : 0), firstRoomDivision, roomPercentage, "0");
+            LegacyRoom room = new LegacyRoom(new Vector3(0, 0, 0), new Vector3(sizeFirstRoom, generationMode == MapGenerationMode.TwoD ? mapSize.y : 0, generationMode == MapGenerationMode.ThreeD ? mapSize.y : 0), firstRoomDivision, roomPercentage, "0");
             mainRooms.Add(room);
-            room = new Room(new Vector3(sizeFirstRoom, 0, 0), new Vector3(mapSize.x - sizeFirstRoom, generationMode == MapGenerationMode.TwoD ? mapSize.y : 0, generationMode == MapGenerationMode.ThreeD ? mapSize.y : 0), roomNumber - firstRoomDivision, roomPercentage, "1");
+            room = new LegacyRoom(new Vector3(sizeFirstRoom, 0, 0), new Vector3(mapSize.x - sizeFirstRoom, generationMode == MapGenerationMode.TwoD ? mapSize.y : 0, generationMode == MapGenerationMode.ThreeD ? mapSize.y : 0), roomNumber - firstRoomDivision, roomPercentage, "1");
             mainRooms.Add(room);
         }
 
@@ -89,9 +89,9 @@ public class BSPGenerator : MonoBehaviour {
     private void InstantiateFloors()
     {
         allRooms = mainRooms[0].GetSubRooms();
-        roomsConected = new List<Room>();
+        roomsConected = new List<LegacyRoom>();
 
-        List<Room> auxRooms = mainRooms[1].GetSubRooms();
+        List<LegacyRoom> auxRooms = mainRooms[1].GetSubRooms();
         for (int i = 0; i < auxRooms.Count; i++)
         {
             allRooms.Add(auxRooms[i]);
@@ -137,7 +137,7 @@ public class BSPGenerator : MonoBehaviour {
         */
     }
 
-    private void InstantiateListFloorRoom(List<Room> rooms)
+    private void InstantiateListFloorRoom(List<LegacyRoom> rooms)
     {
 
         GameObject aux;
@@ -201,8 +201,8 @@ public class BSPGenerator : MonoBehaviour {
     private Vector3[] GenerateCorridor(int n1, int n2 = -1)
     {
         Vector3[] road = null;
-        Room room1 = allRooms[n1];
-        Room room2;
+        LegacyRoom room1 = allRooms[n1];
+        LegacyRoom room2;
         //First, we need to see if the rooms can have a road to create.
         //Check if is left.
         Vector3 startPoint = room1.StartPoint;
@@ -337,44 +337,13 @@ public class BSPGenerator : MonoBehaviour {
     {
         if (gizmosActive)
         {
-            if (mainRooms == null)
-            {
-                int x = 0;
-                int y = 0;
+            Gizmos.DrawCube(new Vector3( tileSize* mapSize.x * 0.5f,
+                           generationMode == MapGenerationMode.ThreeD ? 0 : tileSize * mapSize.y * 0.5f,
+                           generationMode == MapGenerationMode.ThreeD ?  tileSize * mapSize.y * 0.5f : 0),
 
-                for (x = 0; x < mapSize.x; x++)
-                {
-                    Gizmos.color = Color.black;
-
-                    for (y = 0; y < mapSize.y; y++)
-                    {
-                        Gizmos.DrawCube(new Vector3(x + tileSize * 0.5f,
-                            generationMode == MapGenerationMode.ThreeD ? 0 : y + tileSize * 0.5f,
-                            generationMode == MapGenerationMode.ThreeD ? y + tileSize * 0.5f : 0), Vector3.one * tileSize);
-                    }
-                }
-
-            }
-            else
-            {
-                for (int i = 0; i < mainRooms.Count; i++)
-                {
-                    for (int x = 0; x < mainRooms[i].RoomSize.x; x++)
-                    {
-                        for (int y = 0; y < mainRooms[i].RoomSize.y; y++)
-                        {
-                            Gizmos.color = i == 0 ? Color.blue : Color.red;
-                            Gizmos.DrawCube(new Vector3(x + mainRooms[i].StartPoint.x, y + mainRooms[i].StartPoint.y, 0), Vector3.one * tileSize);
-                        }
-
-                        for (int z = 0; z < mainRooms[i].RoomSize.z; z++)
-                        {
-                            Gizmos.color = i == 0 ? Color.blue : Color.red;
-                            Gizmos.DrawCube(new Vector3(x + mainRooms[i].StartPoint.x, 0, z + mainRooms[i].StartPoint.z), Vector3.one * tileSize);
-                        }
-                    }
-                }
-            }
+                           new Vector3(tileSize * mapSize.x,
+                           generationMode == MapGenerationMode.ThreeD ? 0 : tileSize * mapSize.y ,
+                           generationMode == MapGenerationMode.ThreeD ? tileSize * mapSize.y  : 0));
         }
     
     }
