@@ -39,6 +39,12 @@ public class BSPDungeon : Singleton<BSPDungeon>
 	void Start () {
         InitializeRooms();
         board = new int[size.X, size.Y]; 
+
+        for (int i = 0; i< rooms.Count; i++)
+        {
+            int next = i + 1 >= rooms.Count ? 0 : i + 1;
+            CreateRoad(rooms[i], rooms[next]); 
+        }
         foreach (Room item in rooms)
         {
             //Debug.Log(item.ToString()); 
@@ -58,14 +64,43 @@ public class BSPDungeon : Singleton<BSPDungeon>
         {
             for (int j = 0; j< board.GetLength(1); j++)
             {
-                if (board[i,j] == 1)
+                if (board[i,j] == 0)
                     Instantiate(prefab, new Vector3(i, j, 0), Quaternion.identity); 
             }
         }
 
+        for (int i = -10; i< 0; i++) { 
+            for (int j = -10; j< board.GetLength(1)+10 ; j++) {
+                Instantiate(prefab, new Vector3(i, j, 0), Quaternion.identity);
+            }
+        }
 
 
-	}
+        for (int i = -10; i < 0; i++)
+        {
+            for (int j = -10; j < board.GetLength(0)+10; j++)
+            {
+                Instantiate(prefab, new Vector3(j, i, 0), Quaternion.identity);
+            }
+        }
+
+        for (int i = board.GetLength(0); i < board.GetLength(0) +10; i++)
+        {
+            for (int j = -10; j < board.GetLength(1)+10; j++)
+            {
+                Instantiate(prefab, new Vector3(i, j, 0), Quaternion.identity);
+            }
+        }
+
+        for (int i = board.GetLength(1); i < board.GetLength(1) + 10; i++)
+        {
+            for (int j = -10; j < board.GetLength(0)+10; j++)
+            {
+                Instantiate(prefab, new Vector3(j, i, 0), Quaternion.identity);
+            }
+        }
+
+    }
 
    
 
@@ -127,5 +162,46 @@ public class BSPDungeon : Singleton<BSPDungeon>
         nextRoom.SetDefinitiveSize(ocuppationPercentage, minRoomSize); 
         rooms.Add(room); 
 
+    }
+
+    private void CreateRoad(Room room1, Room room2)
+    {
+        int roomXStart = Random.Range(room1.StartPoint.X, room1.StartPoint.X + room1.RoomSize.X);
+        int roomYStart = Random.Range(room1.StartPoint.Y, room1.StartPoint.Y + room1.RoomSize.Y);
+
+
+        int distanceX = 0;
+        int distanceY = 0;
+        if (roomXStart < room2.StartPoint.X || roomXStart >= room2.StartPoint.X + room2.RoomSize.X)
+        {
+            if (roomYStart < room2.StartPoint.Y || roomYStart >= room2.StartPoint.Y + room2.RoomSize.Y)
+            {
+                distanceX = Random.Range(room2.StartPoint.X, room2.StartPoint.X + room2.RoomSize.X) - roomXStart;
+                distanceY = Random.Range(room2.StartPoint.Y, room2.StartPoint.Y + room2.RoomSize.Y) - roomYStart;
+            }
+            else
+            {
+                distanceX = Random.Range(room2.StartPoint.X, room2.StartPoint.X + room2.RoomSize.X) - roomXStart;
+            }
+        }
+        else if (roomYStart < room2.StartPoint.Y || roomYStart >= room2.StartPoint.Y + room2.RoomSize.Y)
+        {
+            distanceY = Random.Range(room2.StartPoint.Y, room2.StartPoint.Y + room2.RoomSize.Y) - roomYStart;
+        }
+
+        int modX = distanceX == 0 ? 0: Mathf.Abs(distanceX) / distanceX;
+        int modY = distanceY == 0 ? 0:  Mathf.Abs(distanceY) / distanceY;
+
+        int i = 0;
+        int j = roomYStart; 
+        for ( i = roomXStart;modX > 0 ?  i < roomXStart + distanceX : i > roomXStart + distanceX; i+=modX)
+        {
+            board[i, j] = 1;
+        }
+
+        for (j = roomYStart; modY > 0 ? j < roomYStart + distanceY : j > roomYStart + distanceY; j += modY)
+        {
+            board[i, j] = 1;
+        }
     }
 }
